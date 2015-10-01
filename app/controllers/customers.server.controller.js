@@ -25,8 +25,16 @@ var getErrorMessage = function (err) {
  * Create a customer
  */
 exports.create = function (req, res) {
-	var customer = new Customer(req.body);
-	customer.creator = req.user;
+	var customer = new Customer(req.customer);
+	Customer.find().exec(function (err, customer) {
+		if (err)
+			return next(err);
+		if (customer.email)
+			return next(new Error('Aleay exist customer eamil'));
+	});
+	customer.name = req.customer.name;
+	customer.email = req.customer.email;
+	customer.prefbarber = req.customer.prefbarber;
 	customer.save(function (err) {
 		if (err) {
 			return res.status(400).send({
@@ -57,7 +65,7 @@ exports.list = function (req, res) {
  * Customer middleware
  */
 exports.customerByID = function (req, res, next, id) {
-	Customer.findById(id).populate('creator', 'Name').exec(function (err, customer) {
+	Customer.findById(id).populate('customer', 'Name').exec(function (err, customer) {
 		if (err)
 			return next(err);
 		if (!customer)
@@ -79,9 +87,9 @@ exports.read = function (req, res) {
  */
 exports.update = function (req, res) {
 	var customer = req.customer;
-	customer.name = req.body.name;
-	customer.email = req.body.email;
-	customer.prefbarber = req.body.prefbarber;
+	customer.name = req.customer.name;
+	customer.email = req.customer.email;
+	customer.prefbarber = req.customer.prefbarber;
 	customer.save(function (err) {
 		if (err) {
 			return res.status(400).send({
